@@ -1,7 +1,8 @@
-(ns specter-demo.core
+(ns specter-demo.bank
   (:use [com.rpl.specter]
         [com.rpl.specter.macros]
-        [clojure.pprint :only [pprint]]))
+        [clojure.pprint :only [pprint]]
+        [com.rpl.specter.impl :only [benchmark]]))
 
 (def world
   {:people [{:money 129827 :name "Alice Brown"}
@@ -24,18 +25,18 @@
      (throw (IllegalArgumentException. "Not enough funds!"))
      (-> world
          (update
-           :people
-           (fn [user-list]
-             (mapv (fn [user]
-                     (if (= (:name user) name)
-                       (update user :money #(- % amt))
-                       user
-                       ))
-                   user-list)))
+          :people
+          (fn [user-list]
+            (mapv (fn [user]
+                    (if (= (:name user) name)
+                      (update user :money #(- % amt))
+                      user
+                      ))
+                  user-list)))
          (update-in
-           [:bank :funds]
-           #(+ % amt))
-           ))))
+          [:bank :funds]
+          #(+ % amt))
+         ))))
 
 
 (defn transfer
@@ -130,3 +131,28 @@
                     :not-so-rich)]
           true
           world))
+
+
+
+(def user-compiled
+  (comp-paths :people
+              ALL
+              (selected? :name
+                         (paramsfn [name]
+                           [elem]
+                           (= name elem))
+                           )))
+
+(def user-money-compiled (comp-paths user-compiled :money))
+
+(def BANK-MONEY (comp-paths :bank :funds))
+
+(defn user->bank-compiled [world name amt]
+  (transfer world (user-money-compiled name) BANK-MONEY amt)
+  )
+
+
+(comment
+  (benchmark 100000 #(user->bank world "John Smith" 25))
+  (benchmark 100000 #(user->bank-fast world "John Smith" 25))
+  )
