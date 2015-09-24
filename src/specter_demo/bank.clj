@@ -132,6 +132,9 @@
           true
           world))
 
+(defn user->bank-uncompiled
+  [world name amt]
+  (transfer world [(user name) :money] [:bank :funds] amt))
 
 
 (def user-compiled
@@ -152,7 +155,10 @@
   )
 
 
+;; Not a direct comparison since Specter version is built on top of
+;; a *much* more general way of doing transfers
 (comment
   (benchmark 100000 #(user->bank world "John Smith" 25))
-  (benchmark 100000 #(user->bank-fast world "John Smith" 25))
+  (benchmark 100000 #(user->bank-uncompiled world "John Smith" 25))
+  (benchmark 100000 #(user->bank-compiled world "John Smith" 25))
   )
