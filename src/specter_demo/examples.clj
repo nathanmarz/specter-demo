@@ -4,9 +4,15 @@
         [clojure.pprint :only [pprint]]
         [com.rpl.specter.impl :only [benchmark]]))
 
-(defn print-results [val]
-  (pprint val)
-  (println " "))
+(defmacro print-results [form]
+  (let [val (last form)]
+    `(let [res# ~form]
+       (println " ")
+       (println " ")
+       (pprint ~val)
+       (println "->")
+       (pprint res#)
+       )))
 
 (comment
   (print-results
@@ -25,7 +31,7 @@
               [2 1 3 6 9 4 8]))
 
   (print-results
-   (transform (srange 3 8)
+   (transform (srange 3 9)
               reverse
               [1 2 3 4 5 6 7 8 9 10 11 12]))
 
