@@ -71,7 +71,9 @@
            [:c :d]
            [[1 2 3 4 5 6] [7 0 -1] [8 8] []]))
 
-  ;; show implementations of keyword and ALL
+  )
+
+;; show implementations of keyword and ALL
 
 (def DATA {:a {:b {:c 1}}})
 
@@ -81,31 +83,34 @@
 
 (def p (comp-paths keypath keypath keypath))
 
+(comment
 
-(benchmark 1000000 #(select [:a :b :c] DATA))
+  (benchmark 1000000 #(select [:a :b :c] DATA))
 
-(benchmark 1000000 #(select s DATA))
+  (benchmark 1000000 #(select s DATA))
 
-(benchmark 1000000 #(compiled-select s DATA))
+  (benchmark 1000000 #(compiled-select s DATA))
 
-(benchmark 1000000 #(get-in DATA [:a :b :c]))
+  (benchmark 1000000 #(get-in DATA [:a :b :c]))
 
-(benchmark 1000000 #(c DATA))
+  (benchmark 1000000 #(c DATA))
 
-(benchmark 1000000 #(-> DATA :a :b :c vector))
+  (benchmark 1000000 #(-> DATA :a :b :c vector))
 
-(benchmark 1000000 #(compiled-select (p :a :b :c) DATA))
+  (benchmark 1000000 #(compiled-select (p :a :b :c) DATA))
+
+  (benchmark 1000000 #(update-in DATA [:a :b :c] inc))
+
+  (benchmark 1000000 #(transform [:a :b :c] inc DATA))
+
+  (benchmark 1000000 #(transform s inc DATA))
+
+  (benchmark 1000000 #(compiled-transform s inc DATA))
+
+  (benchmark 1000000 #(compiled-transform (p :a :b :c) inc DATA))
 
 
-(benchmark 1000000 #(update-in DATA [:a :b :c] inc))
 
-(benchmark 1000000 #(transform [:a :b :c] inc DATA))
-
-(benchmark 1000000 #(transform s inc DATA))
-
-(benchmark 1000000 #(compiled-transform s inc DATA))
-
-(benchmark 1000000 #(compiled-transform (p :a :b :c) inc DATA))
 
 
 

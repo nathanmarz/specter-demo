@@ -2,7 +2,9 @@
   (:use [com.rpl.specter]
         [com.rpl.specter.macros]
         [clojure.pprint :only [pprint]]
-        [com.rpl.specter.impl :only [benchmark]]))
+        [com.rpl.specter.impl :only [benchmark]])
+  (:require [com.rpl.specter [protocols :as p]]
+            [clojure.core.reducers :as r]))
 
 (def world
   {:people [{:money 129827 :name "Alice Brown"}
@@ -137,14 +139,26 @@
   (transfer world [(user name) :money] [:bank :funds] amt))
 
 
+
+(deftype AllVStructurePath [])
+
+(extend-protocol p/StructurePath
+  AllVStructurePath
+  (select* [this structure next-fn]
+    (into [] (r/mapcat next-fn structure)))
+  (transform* [this structure next-fn]
+    (mapv next-fn structure)
+    ))
+
+(def ALLV (->AllVStructurePath))
+
 (def user-compiled
   (comp-paths :people
-              ALL
-              (selected? :name
-                         (paramsfn [name]
-                           [elem]
-                           (= name elem))
-                           )))
+              ALLV
+              (paramsfn [name]
+                        [elem]
+                        (= name (:name elem)))
+              ))
 
 (def user-money-compiled (comp-paths user-compiled :money))
 
@@ -155,7 +169,7 @@
   )
 
 
-;; Not a direct comparison since Specter version is built on top of
+;; Not a direct comparison since Specter versionis built on top of
 ;; a *much* more general way of doing transfers
 (comment
   (benchmark 100000 #(user->bank world "John Smith" 25))
