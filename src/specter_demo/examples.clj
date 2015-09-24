@@ -31,7 +31,7 @@
 
   (print-results
    (transform [(srange 1 4) ALL odd?]
-              inc
+              #(+ % 10)
               [0 1 2 3 4 5 6 7]))
 
   (print-results

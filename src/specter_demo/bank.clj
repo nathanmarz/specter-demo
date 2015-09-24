@@ -16,6 +16,13 @@
    :bank {:funds 4782328748273}}
   )
 
+(defn print-results [val]
+  (println " ")
+  (pprint world)
+  (println "->")
+  (pprint val)
+  (println " "))
+
 (defn user->bank [world name amt]
   (let [curr-funds (->> world
                         :people
@@ -65,11 +72,21 @@
             1)
   )
 
+(comment
+  (print-results
+   (pay-fee world))
+  )
+
 (defn bank-give-dollar [world]
   (transfer world
             [:bank :funds]
             [:people ALL :money]
             1)
+  )
+
+(comment
+  (print-results
+   (bank-give-dollar world))
   )
 
 (defn pay-poor-fee [world]
@@ -79,6 +96,11 @@
             50)
   )
 
+(comment
+  (print-results
+   (pay-poor-fee world))
+  )
+
 (defn rich-people [world]
   (select [:people
            ALL
@@ -86,6 +108,10 @@
            :name]
           world))
 
+(comment
+  (print-results
+   (rich-people world))
+  )
 
 (defn user [name]
   [:people
@@ -99,6 +125,11 @@
             [(user to) :money]
             amt))
 
+(comment
+  (print-results
+   (transfer-users world "Alice Brown" "John Smith" 10))
+  )
+
 (defn bank-loyal-bonus
   "Bank gives $5000 to earliest three users"
   [world]
@@ -106,6 +137,11 @@
             [:bank :funds]
             [:people (srange 0 3) ALL :money]
             5000))
+
+(comment
+  (print-results
+   (bank-loyal-bonus world))
+  )
 
 (defn add-person [world person]
   (setval [:people END]
@@ -125,14 +161,24 @@
              :money]
             1000))
 
+(comment
+  (print-results
+   (bank-recent-charity-bonus world))
+  )
+
 (defn mark-wealth-status [world]
   (setval [:people
            ALL
            (if-path [:money #(>= % 100000)]
                     :rich
-                    :not-so-rich)]
+                    :poor)]
           true
           world))
+
+(comment
+  (print-results
+   (mark-wealth-status world))
+  )
 
 (defn user->bank-uncompiled
   [world name amt]
