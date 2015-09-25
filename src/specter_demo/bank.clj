@@ -48,6 +48,11 @@
           #(+ % amt))
          ))))
 
+(comment
+  (print-results
+   (user->bank world "John Smith" 25))
+  )
+
 
 (defn transfer
   [world from-path to-path amt]
@@ -65,6 +70,8 @@
            )
       (throw (IllegalArgumentException. "Not enough funds!"))
       )))
+
+;; show examples.clj
 
 (defn pay-fee [world]
   (transfer world
@@ -221,3 +228,5 @@
   (benchmark 100000 #(user->bank-uncompiled world "John Smith" 25))
   (benchmark 100000 #(user->bank-compiled world "John Smith" 25))
   )
+
+;; show graph example in examples.clj

@@ -2,7 +2,8 @@
   (:use [com.rpl.specter]
         [com.rpl.specter.macros]
         [clojure.pprint :only [pprint]]
-        [com.rpl.specter.impl :only [benchmark]]))
+        [com.rpl.specter.impl :only [benchmark]])
+  (:require [clojure.string :as str]))
 
 (defmacro print-results [form]
   (let [val (last form)]
@@ -26,6 +27,11 @@
               [{:a 1} {:a 2} {:a 4} {:a 3}]))
 
   (print-results
+   (transform [ALL :a even?]
+              inc
+              '({:a 1} {:a 2} {:a 4} {:a 3})))
+
+  (print-results
    (transform [(filterer odd?) LAST]
               inc
               [2 1 3 6 9 4 8]))
@@ -42,12 +48,12 @@
 
   (print-results
    (transform (srange 2 4)
-              (fn [_] [-1 -1 -1])
+              (fn [_] [-1 -1 -1 -1 -1])
               [0 1 2 3 4 5 6 7 8 9]))
 
   (print-results
    (setval (srange 2 4)
-           [-1 -1 -1]
+           [-1 -1 -1 -1 -1]
            [0 1 2 3 4 5 6 7 8 9]))
 
   (print-results
@@ -83,41 +89,82 @@
 
 (def DATA {:a {:b {:c 1}}})
 
-(def s (comp-paths :a :b :c))
+(def compiled-path (comp-paths :a :b :c))
 
-(def c (comp vector :c :b :a))
-
-(def p (comp-paths keypath keypath keypath))
+(defn manual-transform [data]
+  (update data
+          :a
+          (fn [d1]
+            (update d1
+                    :b
+                    (fn [d2]
+                      (update d2 :c inc))))))
 
 (comment
 
   (benchmark 1000000 #(select [:a :b :c] DATA))
 
-  (benchmark 1000000 #(select s DATA))
+  (benchmark 1000000 #(select compiled-path DATA))
 
-  (benchmark 1000000 #(compiled-select s DATA))
+  (benchmark 1000000 #(compiled-select compiled-path DATA))
 
   (benchmark 1000000 #(get-in DATA [:a :b :c]))
 
-  (benchmark 1000000 #(c DATA))
-
   (benchmark 1000000 #(-> DATA :a :b :c vector))
-
-  (benchmark 1000000 #(compiled-select (p :a :b :c) DATA))
 
   (benchmark 1000000 #(update-in DATA [:a :b :c] inc))
 
   (benchmark 1000000 #(transform [:a :b :c] inc DATA))
 
-  (benchmark 1000000 #(transform s inc DATA))
+  (benchmark 1000000 #(transform compiled-path inc DATA))
 
-  (benchmark 1000000 #(compiled-transform s inc DATA))
+  (benchmark 1000000 #(compiled-transform compiled-path inc DATA))
 
-  (benchmark 1000000 #(compiled-transform (p :a :b :c) inc DATA))
-
-
-
-
-
+  (benchmark 1000000 #(manual-transform DATA))
 
   )
+
+;; example of late-bound parameterization
+
+(defn reverse-matching-in-range [data start end predicate]
+  (transform [(srange start end) (filterer predicate)]
+             reverse
+             data))
+
+(def MATCHING-RANGE (comp-paths srange (filterer pred)))
+(defn reverse-matching-in-range-fast [data start end predicate]
+  (compiled-transform (MATCHING-RANGE start end predicate)
+                      reverse
+                      data))
+
+(def RANGE [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+
+(comment
+  (benchmark 100000 #(reverse-matching-in-range RANGE 4 11 odd?))
+  (benchmark 100000 #(reverse-matching-in-range-fast RANGE 4 11 odd?))
+  )
+
+
+(def param-compiled (comp-paths keypath keypath keypath))
+(comment
+  (benchmark 1000000 #(update-in DATA [:a :b :c] inc))
+  (benchmark 1000000 #(transform [:a :b :c] inc DATA))
+  (benchmark 1000000 #(compiled-transform compiled-path inc DATA))
+  (benchmark 1000000 #(compiled-transform (param-compiled :a :b :c) inc DATA))
+  (benchmark 1000000 #(manual-transform DATA))
+  )
+
+;; back to bank examples
+
+
+(comment
+  (transform [TOPSORT
+              (collect PARENTS ALL NODE :name)
+              NODE
+              (collect-one :name)
+              :royal-name
+              ]
+             (fn [parent-names name _]
+               (str name " of " (str/join ", " parent-names)))
+             ancestry-graph
+             ))
