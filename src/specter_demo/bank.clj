@@ -6,6 +6,14 @@
   (:require [com.rpl.specter [protocols :as p]]
             [clojure.core.reducers :as r]))
 
+(declare world)
+(defn print-results [val]
+  (println " ")
+  (pprint world)
+  (println "->")
+  (pprint val)
+  (println " "))
+
 (def world
   {:people [{:money 129827 :name "Alice Brown"}
             {:money 100 :name "John Smith"}
@@ -15,13 +23,6 @@
             ]
    :bank {:funds 4782328748273}}
   )
-
-(defn print-results [val]
-  (println " ")
-  (pprint world)
-  (println "->")
-  (pprint val)
-  (println " "))
 
 (defn user->bank [world name amt]
   (let [curr-funds (->> world
@@ -116,8 +117,7 @@
 (defn user [name]
   [:people
    ALL
-   (selected? :name
-              #(= % name))])
+   #(= (:name %) name)])
 
 (defn transfer-users [world from to amt]
   (transfer world
@@ -156,7 +156,6 @@
             [:bank :funds]
             [:people
              (filterer [:money #(< % 5000)])
-             (selected? (view empty?) not)
              LAST
              :money]
             1000))
