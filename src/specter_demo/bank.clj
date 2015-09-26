@@ -177,7 +177,7 @@
            ALL
            (if-path [:money #(>= % 100000)]
                     :rich
-                    :poor)]
+                    :not-so-rich)]
           true
           world))
 
@@ -185,6 +185,8 @@
   (print-results
    (mark-wealth-status world))
   )
+
+;; show performance examples in examples.clj
 
 (defn user->bank-uncompiled
   [world name amt]
@@ -221,7 +223,7 @@
   )
 
 
-;; Not a direct comparison since Specter versionis built on top of
+;; Not a direct comparison since Specter version is built on top of
 ;; a *much* more general way of doing transfers
 (comment
   (benchmark 100000 #(user->bank world "John Smith" 25))
